@@ -1,0 +1,59 @@
+"""
+Data Cleaning & Transformation for Customer Profitability Analysis
+Phase 1 of ETL Pipeline
+"""
+
+import pandas as pd
+import numpy as np
+
+
+df = pd.read_csv("WA_Fn-UseC_-Telco-Customer-Churn.csv")
+
+
+
+df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce')
+df['TotalCharges'] = df['TotalCharges'].fillna(df['MonthlyCharges'] * df['tenure'])
+
+
+df = df.applymap(lambda x: x.strip().title() if isinstance(x, str) else x)
+
+
+np.random.seed(42)
+countries = ['India', 'USA', 'UK', 'Singapore', 'Canada', 'Australia']
+regions = {
+    'India': 'Asia',
+    'USA': 'North America',
+    'UK': 'Europe',
+    'Singapore': 'Asia',
+    'Canada': 'North America',
+    'Australia': 'Oceania'
+}
+df['Country'] = np.random.choice(countries, len(df))
+df['Region'] = df['Country'].map(regions)
+
+
+df['ProfitabilityScore'] = (
+    (df['tenure'] / df['tenure'].max()) * 0.4 +
+    (df['MonthlyCharges'] / df['MonthlyCharges'].max()) * 0.3 +
+    (df['TotalCharges'] / df['TotalCharges'].max()) * 0.3
+) * 100
+df['ProfitabilityScore'] = df['ProfitabilityScore'].round(2)
+
+
+df['CPI'] = (df['ProfitabilityScore'] / 100) * np.where(df['Churn'] == 'Yes', 0.5, 1)
+
+
+df['CLV'] = (df['MonthlyCharges'] * df['tenure']) * np.where(df['Churn'] == 'No', 1.2, 0.8)
+
+
+df['SeniorCitizen'] = df['SeniorCitizen'].astype(int)
+
+
+df = df.drop_duplicates(subset=['customerID'])
+df = df.fillna('Unknown')
+
+cleaned_path = "telco_cleaned_for_sql.csv"
+df.to_csv(cleaned_path, index=False)
+
+print(f"Shape: {df.shape}")
+print(f"Columns: {df.columns.tolist()}")
