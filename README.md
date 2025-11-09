@@ -73,7 +73,6 @@ Customer_Profitability_Analysis/
 ## 👨‍💻 Author
 
 **Teja Ambati**
-📧 *[your email]*
-📎 [LinkedIn / Portfolio if available]
+📧 *ambatiteja450@gmail.com*
 
 ---
